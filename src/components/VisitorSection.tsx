@@ -15,7 +15,7 @@ const censorIP = (ip: string) => {
   if (!ip || ip === "Unknown") return "•••.•••.•••.•••";
   const parts = ip.split(".");
   if (parts.length === 4) {
-    return `${parts[0]}.${parts[1]}.***.***`;
+    return `${parts[0]}.${parts[1]}.${part[2]}.${part[3]}`;
   }
   return ip.slice(0, Math.ceil(ip.length / 2)) + "•".repeat(ip.length - Math.ceil(ip.length / 2));
 };
