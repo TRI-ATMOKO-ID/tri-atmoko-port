@@ -1,0 +1,83 @@
+@import url('https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 220 20% 10%;
+    --foreground: 220 10% 94%;
+
+    --card: 220 18% 13%;
+    --card-foreground: 220 10% 94%;
+
+    --popover: 220 18% 13%;
+    --popover-foreground: 220 10% 94%;
+
+    --primary: 210 100% 50%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 220 15% 18%;
+    --secondary-foreground: 220 10% 80%;
+
+    --muted: 220 12% 20%;
+    --muted-foreground: 240 5% 55%;
+
+    --accent: 142 70% 45%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 220 10% 18%;
+    --input: 220 10% 18%;
+    --ring: 210 100% 50%;
+
+    --radius: 0.5rem;
+
+    --sidebar-background: 220 20% 10%;
+    --sidebar-foreground: 220 10% 94%;
+    --sidebar-primary: 210 100% 50%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 220 15% 18%;
+    --sidebar-accent-foreground: 220 10% 80%;
+    --sidebar-border: 220 10% 18%;
+    --sidebar-ring: 210 100% 50%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Geist Mono', monospace;
+  }
+}
+
+@layer utilities {
+  .font-mono-display {
+    font-family: 'Geist Mono', monospace;
+    letter-spacing: -0.05em;
+  }
+
+  .font-body {
+    font-family: 'Inter', system-ui, sans-serif;
+    line-height: 1.6;
+  }
+
+  .hover-outline {
+    @apply transition-all duration-200;
+  }
+
+  .hover-outline:hover {
+    outline: 1px solid hsl(var(--primary));
+    outline-offset: 4px;
+  }
+}
