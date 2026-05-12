@@ -40,11 +40,16 @@ const VisitorSection = () => {
   const [hasTracked, setHasTracked] = useState(false);
 
   useEffect(() => {
-    // Fetch initial data
+    // Fetch initial data (HANYA MENARIK DATA INDONESIA)
     const fetchData = async () => {
       const [counterRes, visitorsRes] = await Promise.all([
         supabase.from("view_counter").select("count").limit(1).single(),
-        supabase.from("visitors").select("*").order("visited_at", { ascending: false }).limit(10),
+        supabase
+          .from("visitors")
+          .select("*")
+          .ilike("location", "%Indonesia%") // Filter dari database langsung
+          .order("visited_at", { ascending: false })
+          .limit(10),
       ]);
 
       if (counterRes.data) setViewCount(counterRes.data.count);
@@ -64,7 +69,11 @@ const VisitorSection = () => {
     const visitorsChannel = supabase
       .channel("visitors_changes")
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "visitors" }, (payload) => {
-        setVisitors((prev) => [(payload.new as Visitor), ...prev].slice(0, 10));
+        const newVisitor = payload.new as Visitor;
+        // Hanya update UI jika pengunjung baru berasal dari Indonesia
+        if (newVisitor.location && newVisitor.location.includes("Indonesia")) {
+          setVisitors((prev) => [newVisitor, ...prev].slice(0, 10));
+        }
       })
       .subscribe();
 
@@ -81,19 +90,39 @@ const VisitorSection = () => {
       // Check if already tracked this session
       if (sessionStorage.getItem("visited")) return;
 
+      // --- 1. FILTER BOT MENGGUNAKAN USER-AGENT ---
+      const ua = navigator.userAgent.toLowerCase();
+      const isBot = /bot|googlebot|crawler|spider|robot|crawling|headless|yandex|bing|slurp/i.test(ua);
+      
+      if (isBot) {
+        console.log("Bot terdeteksi, mengabaikan tracking.");
+        return; 
+      }
+
       const device_name = getDeviceName();
       let ip_address = "Unknown";
       let location = "Unknown";
+      let country_name = "Unknown";
 
       try {
         const res = await fetch("https://ipapi.co/json/");
         const data = await res.json();
         ip_address = data.ip || "Unknown";
+        country_name = data.country_name || "Unknown";
         location = [data.city, data.region, data.country_name].filter(Boolean).join(", ") || "Unknown";
+        
+        // --- 2. FILTER NEGARA BERDASARKAN IP ---
+        if (country_name !== "Indonesia") {
+          console.log("Pengunjung bukan dari Indonesia, mengabaikan tracking.");
+          return; 
+        }
+
       } catch {
-        // Fallback if API fails
+        // Fallback if API fails, kita biarkan gagal dan tidak usah simpan
+        return;
       }
 
+      // Jika lolos verifikasi bot dan merupakan IP Indonesia, baru simpan ke DB
       try {
         await supabase.functions.invoke("track-visitor", {
           body: { ip_address, device_name, location },
@@ -183,7 +212,7 @@ const VisitorSection = () => {
 
           <div className="space-y-2">
             {visitors.length === 0 && (
-              <p className="font-body text-sm text-muted-foreground py-4">Belum ada data kunjungan.</p>
+              <p className="font-body text-sm text-muted-foreground py-4">Belum ada data kunjungan terbaru dari Indonesia.</p>
             )}
             {visitors.map((visitor, index) => (
               <motion.div
